@@ -23,195 +23,273 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a full-stack ecommerce application with a FastAPI backend implementing hexagonal architecture and a React TypeScript frontend. The project manages products, users, and orders with OAuth2 authentication.
+**Spec Claude Development (SCD)** is a portable and extensible framework for Spec-Driven Development. This is NOT an application, but a reusable meta-framework built on OpenSpec that provides an "army" of specialized AI agents and a structured workflow to assist in efficient and accurate code generation from formal specifications.
 
 ### Tech Stack
-- **Backend**: FastAPI, Motor (MongoDB), OAuth2, Pydantic
-- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Radix UI, React Query, React Router
-- **Database**: MongoDB (with Docker setup available)
-- **Architecture**: Hexagonal Architecture (Ports & Adapters) for backend, Feature-based architecture for frontend
+- **Core Standard**: OpenSpec CLI and workflow (`@fission-ai/openspec`)
+- **Agent Framework**: Custom multi-agent system defined in `.claude/agents/` via Markdown
+- **Slash Commands**: Custom commands in `.claude/commands/` for common workflows
+- **Primary Language**: Shell scripts (bash/zsh) for tooling, Markdown for agent definitions and specs
+- **Environment**: Unix-like environment with `node` and `npm` for OpenSpec CLI
 
 ## Common Commands
 
-### Backend (from `/backend` directory)
+### OpenSpec Workflow
 ```bash
-# Install Poetry (if not already installed)
-curl -sSL https://install.python-poetry.org | python3 -
+# List active changes and specifications
+openspec list                  # List active changes
+openspec list --specs          # List all specifications
+openspec spec list --long      # List specs with details
 
-# Install dependencies
-poetry install
+# View details
+openspec show [item]           # Display change or spec details
+openspec show [change] --json --deltas-only  # Debug delta parsing
 
-# Activate virtual environment
-poetry shell
+# Validation
+openspec validate [change] --strict  # Validate changes comprehensively
+openspec validate              # Bulk validation mode
 
-# Run development server
-poetry run uvicorn src.main:app --reload
+# Project management
+openspec init [path]           # Initialize OpenSpec in a project
+openspec update [path]         # Update instruction files
 
-# Run tests with coverage
-poetry run pytest --cov=src --cov-report=term-missing --cov-report=html
-
-# Run specific test types
-poetry run pytest -m unit          # Unit tests only
-poetry run pytest -m integration   # Integration tests only
-poetry run pytest -m "not slow"  # Skip slow tests
-
-# Run specific test file
-poetry run pytest tests/test_domain_entities.py
-
-# Run tests matching pattern
-poetry run pytest -k "test_user"
-
-# Add a new dependency
-poetry add package-name
-
-# Add a development dependency
-poetry add --group dev package-name
-
-# Update dependencies
-poetry update
-
-# Show installed packages
-poetry show
-
-# Export to requirements.txt (if needed for compatibility)
-poetry export -f requirements.txt --output requirements.txt
+# Archive completed changes
+openspec archive <change-id> --yes  # Archive after deployment
 ```
 
-### Frontend (from `/frontend` directory)
+### Slash Commands
 ```bash
-# Install dependencies
-npm install
+# OpenSpec-related commands
+/openspec:proposal  # Scaffold a new OpenSpec change proposal
+/openspec:apply     # Implement an approved OpenSpec change
+/openspec:archive   # Archive a deployed OpenSpec change
 
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Lint code
-npm run lint
-
-# Preview production build
-npm run preview
+# Development workflow commands
+/worktree           # Create git worktree for feature development
+/worktree-from-issue  # Create worktree from GitHub issue
+/issues             # Manage GitHub issues
+/ideation           # Product ideation workflow
 ```
 
-### Database
+### Git Workflow
 ```bash
-# Start MongoDB with Docker
-docker compose up -d
+# Conventional commits (reference OpenSpec change)
+git commit -m "feat(change-id): implement feature"
+git commit -m "fix(change-id): resolve bug"
+
+# Create feature branches
+git worktree add ../feature-name -b feature-name
 ```
 
 ## Architecture
 
-### Backend - Hexagonal Architecture
+### SCD Agent Framework (`.claude/`)
 
-The backend follows hexagonal architecture with clear separation of concerns:
+The framework provides specialized AI agents, each with a specific role:
 
-#### Domain Layer (`src/domain/`)
-- **Entities** (`entities/`): Core business objects using `@dataclass` with validation in `__post_init__`
-- **Exceptions** (`exceptions/`): Domain-specific exceptions for business rule violations
+#### Available Agents
+- **backend-developer**: Python backend development with hexagonal architecture
+- **backend-test-engineer**: Backend unit testing with pytest
+- **frontend-developer**: React frontend development with feature-based architecture
+- **frontend-test-engineer**: Frontend unit testing with React Testing Library and Vitest
+- **shadcn-ui-architect**: shadcn/ui component design and implementation
+- **ui-ux-analyzer**: UI/UX review and improvement recommendations
+- **qa-criteria-validator**: Acceptance criteria validation with Playwright
+- **pydantic-ai-architect**: Pydantic AI agent system design and optimization
 
-#### Application Layer (`src/application/`)
-- **Ports** (`ports/`): Repository interfaces (abstract contracts)
-- **Use Cases** (`use_cases/`): Business logic orchestration, one public `execute` method per use case
+#### Agent Usage Pattern
+Agents are invoked automatically by Claude Code based on task type. Each agent:
+- Researches and proposes implementation plans
+- Creates documentation in `.claude/doc/{feature_name}/{agent}.md`
+- Reports findings and recommendations
+- Parent agent (you) performs actual implementation based on their plans
 
-#### Infrastructure Layer (`src/infrastructure/`)
-- **Adapters** (`adapters/repositories/`): MongoDB repository implementations
-- **Web** (`web/`): FastAPI routers, DTOs, mappers, dependencies
-  - **Routers**: Thin controllers delegating to use cases
-  - **DTOs**: Pydantic models for request/response validation
-  - **Mappers**: Clean conversion between DTOs and domain entities
-  - **Dependencies**: Dependency injection with `@lru_cache()` for repositories
+### OpenSpec Workflow (`openspec/`)
 
-### Frontend - Feature-based Architecture
+Source of truth for all specifications, following a three-stage workflow:
 
-The frontend is organized by features with each feature containing:
+#### Directory Structure
+```
+openspec/
+├── project.md              # Project conventions and context
+├── specs/                  # Current truth - what IS built
+│   └── [capability]/       # Single focused capability
+│       ├── spec.md         # Requirements and scenarios
+│       └── design.md       # Technical patterns
+├── changes/                # Proposals - what SHOULD change
+│   ├── [change-id]/
+│   │   ├── proposal.md     # Why, what, impact
+│   │   ├── tasks.md        # Implementation checklist
+│   │   ├── design.md       # Technical decisions (optional)
+│   │   └── specs/          # Delta changes
+│   │       └── [capability]/
+│   │           └── spec.md # ADDED/MODIFIED/REMOVED
+│   └── archive/            # Completed changes
+```
 
-#### Feature Structure (`src/features/{feature}/`)
-- **Components** (`components/`): React components using feature context
-- **Data** (`data/`): Schemas (Zod), services (API calls)
-- **Hooks** (`hooks/`):
-  - **Context Hook** (`use{Feature}Context.tsx`): Feature state management and operations using context
-  - **Business Hook** (`use{Feature}.tsx`): Feature state management and operations 
-  - **Mutations** (`mutations/`): React Query mutations for data modification
-  - **Queries** (`queries/`): React Query queries for data fetching
+#### Three-Stage Workflow
 
-#### Core Infrastructure (`src/core/`)
-- **Data** (`data/`): API client, app storage, query client setup
-- **Hooks** (`hooks/`): Shared hooks across features
+**Stage 1: Creating Changes** (Use `/openspec:proposal`)
+1. Review `openspec/project.md` and `openspec list --specs`
+2. Choose unique verb-led `change-id` (e.g., `add-user-auth`, `update-payment-flow`)
+3. Scaffold `proposal.md`, `tasks.md`, optional `design.md`
+4. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements`
+5. Validate with `openspec validate <id> --strict`
 
-#### UI Components (`src/components/ui/`)
-- Radix UI-based reusable components with TailwindCSS styling
+**Stage 2: Implementing Changes** (Use `/openspec:apply`)
+1. Read `proposal.md`, `design.md`, and `tasks.md`
+2. Implement tasks sequentially
+3. Update checklist after completion
+4. Do NOT start until proposal is approved
+
+**Stage 3: Archiving Changes** (Use `/openspec:archive`)
+1. Move to `changes/archive/YYYY-MM-DD-[name]/`
+2. Update `specs/` if capabilities changed
+3. Validate with `openspec validate --strict`
 
 ## Development Guidelines
 
-### Backend Conventions
-- Use dependency injection throughout the web layer
-- All use cases follow the pattern: constructor injection → single `execute` method
-- Domain entities validate in `__post_init__` and business methods
-- Repository implementations use MongoDB with Motor async driver
-- DTOs use Pydantic with comprehensive validation
-- Map domain exceptions to appropriate HTTP status codes
+### Agent Workflow (CRITICAL)
 
-### Frontend Conventions
-- Each feature exports a context provider and custom hook
-- Components import UI components from `@/components/ui/`
-- Use `use{Feature}Context` for accessing feature state and operations for context states
-- Use `use{Feature}` for accessing feature state and operations
-- Mutations return: `{action, isLoading, error, isSuccess}`
-- Services use axios for API communication
-- Type safety with TypeScript and Zod schemas
+#### Phase 1: Planning
+- Create `.claude/sessions/context_session_{feature_name}.md` at start
+- Consult relevant subagents (run in parallel when possible)
+- Update context file with plan and agent recommendations
 
-### Testing
-- Backend uses pytest with comprehensive test configuration
-- Tests organized by layers: domain, service, repository, API, integration
-- Coverage requirement: 80%
-- Use markers for test categorization: `unit`, `integration`, `slow`, `auth`, `api`
+#### Phase 2: Implementation
+- Read `.claude/sessions/context_session_{feature_name}.md` for full context
+- Update context file after each phase
+- Context file contains history, overall plan, and agent contributions
 
-### Security
-- OAuth2 authentication with JWT tokens
-- Password hashing with bcrypt
-- Protected routes on both backend and frontend
-- Environment-based configuration for sensitive data
+#### Phase 3: Validation
+- Use `qa-criteria-validator` for final validation
+- Review report and implement feedback
+- Iterate until acceptance criteria pass
 
-## Environment Setup
+### OpenSpec Conventions
 
+**When to Create Proposals:**
+- New features or functionality
+- Breaking changes (API, schema, architecture)
+- Performance optimization changing behavior
+- Security pattern updates
 
-## Important Files
-- `backend/src/app.py`: FastAPI application factory
-- `backend/src/main.py`: Application entry point
-- `frontend/src/main.tsx`: React application entry point
-- `backend/pytest.ini`: Test configuration
-- `backend/run_tests.py`: Comprehensive test runner with multiple options
+**Skip Proposals For:**
+- Bug fixes (restore intended behavior)
+- Typos, formatting, comments
+- Non-breaking dependency updates
+- Configuration changes
 
+**Spec File Format:**
+```markdown
+## ADDED Requirements
+### Requirement: Feature Name
+The system SHALL provide...
 
-## WORKFLOW RULES
-### Phase 1
-- At the starting point of a feature on plan mode phase you MUST ALWAYS init a `.claude/sessions/context_session_{feature_name}.md` with yor first analisis
-- You MUST ask to the subagents that you considered that have to be involved about the implementation and check their opinions, try always to run them on parallel if is posible
-- After a plan mode phase you ALWAYS update the `.claude/sessions/context_session_{feature_name}.md` with the definition of the plan and the recomentations of the subagents
-### Phase 2
-- Before you do any work, MUST view files in `.claude/sessions/context_session_{feature_name}.md` file to get the full context (x being the id of the session we are operate)
-- `.claude/sessions/context_session_{feature_name}.md` should contain most of context of what we did, overall plan, and sub agents will continusly add context to the file
-- After you finish the each phase, MUST update the `.claude/sessions/context_session_{feature_name}.md` file to make sure others can get full context of what you did
-- After you finish the work, MUST update the `.claude/sessions/context_session_{feature_name}.md` file to make sure others can get full context of what you did
-### Phase 3
-- After finish the final implementation MUST use qa-criteria-validator subagent to provide a report feedback an iterate over this feedback until acceptance criterias are passed
-- After qa-criteria-validator finish, you MUST review their report and implement the feedback related with the feature
+#### Scenario: Success case
+- **WHEN** user performs action
+- **THEN** expected result
 
-### SUBAGENTS MANAGEMENT
-You have access to 8 subagents:
-- shadcn-ui-architect: all task related to UI building & tweaking HAVE TO consult this agent
-- qa-criteria-validator: all final client UI/UX implementations has to be validated by this subagent to provide feedback an iterate.
-- ui-ux-analyzer: all the task related with UI review, improvements & tweaking HAVE TO consult this agent
-- pydantic-ai-architect: all task related to ai agents using pydantic-ai framework & tweaking HAVE TO consult this agent
-- frontend-developer: all task related to business logic in the client side before create the UI building & tweaking HAVE TO consult this agent
-- frontend-test-engineer: all task related to business logic in the client side after implementation has to consult this agent to get the necesary test cases definitions
-- backend-developer: all task related to business logic in the backend side HAVE TO consult this agent
-- backend-test-engineer: all task related to business logic in the backned side after implementation has to consult this agent to get the necesary test cases definitions
+## MODIFIED Requirements
+### Requirement: Existing Feature
+[Complete modified requirement with all scenarios]
 
-Subagents will do research about the implementation and report feedback, but you will do the actual implementation;
+## REMOVED Requirements
+### Requirement: Old Feature
+**Reason**: [Why removing]
+**Migration**: [How to handle]
+```
 
-When passing task to sub agent, make sure you pass the context file, e.g. `.claude/sessions/context_session_{feature_name}.md`.
+**Critical Rules:**
+- Every requirement MUST have at least one `#### Scenario:`
+- Use `## ADDED|MODIFIED|REMOVED|RENAMED Requirements` headers
+- MODIFIED requirements must include complete text (previous + new)
+- Use `openspec validate --strict` before sharing proposals
 
-After each sub agent finish the work, make sure you read the related documentation they created to get full context of the plan before you start executing
+### Code Style
+
+**Shell Scripts:**
+- Follow POSIX-compliance where possible
+- Adhere to Google Shell Style Guide
+- Comment complex logic
+- Use proper error handling
+
+**Markdown:**
+- Follow CommonMark specification
+- Clear, concise, parsable by language models
+- Use proper formatting for agent definitions
+
+### Git Workflow
+- Use conventional commits: `type(scope): message`
+- Scope should reference OpenSpec change name
+- Examples:
+  - `feat(add-user-auth): implement authentication flow`
+  - `fix(update-ui): resolve button styling issue`
+  - `docs(agents): update backend-developer agent description`
+
+## Important Files & Directories
+
+### Agent Definitions
+- `.claude/agents/*.md`: Specialized AI agent definitions
+- `.claude/commands/*.md`: Custom slash commands
+- `.claude/doc/{feature}/`: Agent-generated implementation plans
+- `.claude/sessions/`: Context files for feature development
+
+### OpenSpec Files
+- `openspec/project.md`: Project context and conventions
+- `openspec/AGENTS.md`: Detailed OpenSpec workflow instructions
+- `openspec/specs/`: Current specification truth
+- `openspec/changes/`: Active change proposals
+
+### Configuration
+- `.mcp.json`: Model Context Protocol configuration
+
+## Domain Context
+
+This is a **meta-level programming** project focused on **AI-assisted software development**. Key concepts:
+
+- **Spec-Driven Development**: Formal specifications drive implementation
+- **Multi-Agent System**: Specialized agents collaborate on development
+- **Specification Delta**: Incremental changes to specifications
+- **Change Proposal**: Formal proposal for modifying capabilities
+- **Archiving**: Recording completed changes
+
+### Critical Distinctions
+- **SCD Framework**: This repository (the meta-framework)
+- **Target Project**: The codebase where SCD is applied
+
+## Important Constraints
+
+1. **Strict OpenSpec Lifecycle**: Must follow `propose` → `implement` → `archive`
+2. **Agent Context Passing**: Use OpenSpec change folders, not session files
+3. **No Direct Implementation**: Agents propose plans, parent agent implements
+4. **Validation Required**: Always run `openspec validate --strict` before submission
+
+## Subagent Management
+
+You have access to 8 specialized subagents. When working on features:
+
+1. **Consult relevant agents** based on task type
+2. **Pass context file** (`.claude/sessions/context_session_{feature_name}.md`)
+3. **Read agent documentation** before implementing
+4. **Run agents in parallel** when possible
+
+**Agent Selection Guide:**
+- UI building → `shadcn-ui-architect`
+- UI review → `ui-ux-analyzer`
+- Frontend logic → `frontend-developer`
+- Frontend tests → `frontend-test-engineer`
+- Backend logic → `backend-developer`
+- Backend tests → `backend-test-engineer`
+- AI agents → `pydantic-ai-architect`
+- Final validation → `qa-criteria-validator`
+
+## External Dependencies
+
+**Critical Dependency:**
+- **OpenSpec CLI** (`@fission-ai/openspec`): Entire workflow orchestrated through `openspec` command
+
+**Optional Tools:**
+- Git worktree support for parallel development
+- GitHub CLI (`gh`) for issue management
+- Standard Unix tools (`rg`, `ls`, `cat`, etc.)

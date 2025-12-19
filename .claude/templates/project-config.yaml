@@ -1,0 +1,267 @@
+# SCD Project Configuration
+# This file defines the technology stack and conventions for this project.
+# Agents read this file to adapt their recommendations to your specific tech stack.
+
+project:
+  name: "MyProject"
+  type: "fullstack"  # Options: fullstack | backend | frontend | mobile | cli | library
+  description: "Brief description of what this project does"
+
+  # Repository information
+  repo:
+    url: "https://github.com/org/repo"
+    main_branch: "main"
+
+  # Team preferences
+  team:
+    commit_style: "conventional"  # conventional | semantic | custom
+    branch_naming: "feature/{issue-id}-{description}"
+    pr_template: ".github/pull_request_template.md"
+
+# Technology Stack Configuration
+# Agents use these values to provide tech-specific recommendations
+
+tech_stack:
+  # Backend configuration
+  backend:
+    enabled: true
+    language: "python"       # python | javascript | typescript | go | rust | java | ruby
+    version: "3.11"
+
+    # Framework
+    framework: "fastapi"     # fastapi | django | flask | express | nestjs | gin | actix
+    framework_version: "0.104"
+
+    # Database
+    database: "postgresql"   # postgresql | mongodb | mysql | sqlite | redis
+    database_driver: "asyncpg"  # asyncpg | motor | pymongo | psycopg2 | sqlalchemy
+
+    # ORM/ODM (if applicable)
+    orm: "sqlalchemy"        # sqlalchemy | prisma | typeorm | gorm | diesel | none
+
+    # Architecture Pattern
+    architecture: "hexagonal"  # hexagonal | clean | layered | microservices | monolith
+
+    # Package Manager
+    package_manager: "poetry"  # poetry | pip | npm | yarn | pnpm | go-mod | cargo
+
+    # Testing
+    testing_framework: "pytest"  # pytest | unittest | jest | mocha | go-test | cargo-test
+    coverage_target: 80         # Minimum coverage percentage
+
+    # Additional tools
+    tools:
+      linter: "ruff"           # ruff | pylint | eslint | golangci-lint
+      formatter: "black"       # black | prettier | gofmt | rustfmt
+      type_checker: "mypy"     # mypy | pyright | typescript | none
+
+  # Frontend configuration
+  frontend:
+    enabled: true
+    language: "typescript"   # typescript | javascript
+    version: "5.0"
+
+    # Framework
+    framework: "react"       # react | vue | svelte | angular | solid | next | nuxt
+    framework_version: "19"
+
+    # Build Tool
+    bundler: "vite"          # vite | webpack | parcel | rollup | esbuild | turbopack
+
+    # Styling
+    styling: "tailwindcss"   # tailwindcss | styled-components | css-modules | sass | emotion
+
+    # UI Library
+    ui_library: "shadcn"     # shadcn | mui | antd | chakra | mantine | headlessui | none
+
+    # State Management
+    state_management: "react-query"  # react-query | redux | zustand | mobx | pinia | vuex | none
+
+    # Architecture Pattern
+    architecture: "feature-based"  # feature-based | atomic | mvc | flux | none
+
+    # Package Manager
+    package_manager: "npm"   # npm | yarn | pnpm | bun
+
+    # Testing
+    testing_framework: "vitest"  # vitest | jest | testing-library | cypress | playwright
+    coverage_target: 80          # Minimum coverage percentage
+
+    # Additional tools
+    tools:
+      linter: "eslint"
+      formatter: "prettier"
+      type_checker: "typescript"
+
+  # Mobile configuration (if applicable)
+  mobile:
+    enabled: false
+    platform: "react-native"  # react-native | flutter | swift | kotlin | ionic
+    # Add mobile-specific configs here
+
+  # Infrastructure
+  infrastructure:
+    # Deployment
+    deployment_platform: "docker"  # docker | kubernetes | serverless | heroku | vercel | railway
+
+    # CI/CD
+    ci_cd: "github-actions"  # github-actions | gitlab-ci | circleci | jenkins | none
+
+    # Monitoring
+    monitoring: "none"       # datadog | newrelic | sentry | prometheus | none
+
+    # Container orchestration
+    orchestration: "docker-compose"  # docker-compose | kubernetes | docker-swarm | none
+
+# Development Environment
+environment:
+  # Required tools
+  required:
+    - "node >= 18"
+    - "python >= 3.11"
+    - "docker"
+
+  # Optional tools
+  optional:
+    - "make"
+    - "git"
+
+  # Environment variables (don't put secrets here!)
+  env_files:
+    - ".env.local"
+    - ".env.development"
+    - ".env.production"
+
+# Project Structure Conventions
+structure:
+  backend:
+    root: "backend"
+    source: "backend/src"
+    tests: "backend/tests"
+    config: "backend/config"
+
+  frontend:
+    root: "frontend"
+    source: "frontend/src"
+    tests: "frontend/src"  # Next to source files
+    public: "frontend/public"
+
+  shared:
+    docs: "docs"
+    scripts: "scripts"
+    config: ".claude"
+
+# Coding Conventions
+conventions:
+  # Naming
+  naming:
+    files: "kebab-case"        # kebab-case | snake_case | camelCase | PascalCase
+    classes: "PascalCase"      # PascalCase | camelCase
+    functions: "snake_case"    # snake_case | camelCase
+    variables: "snake_case"    # snake_case | camelCase
+    constants: "UPPER_SNAKE"   # UPPER_SNAKE | camelCase
+
+  # Code Style
+  style:
+    max_line_length: 100
+    indent_size: 4
+    indent_style: "spaces"     # spaces | tabs
+    quote_style: "double"      # double | single
+
+  # Documentation
+  documentation:
+    docstring_style: "google"  # google | numpy | sphinx | jsdoc
+    inline_comments: true
+    type_hints: true
+
+  # Testing
+  testing:
+    test_file_pattern: "test_*.py"  # test_*.py | *.test.ts | *_test.go
+    test_class_prefix: "Test"
+    test_method_prefix: "test_"
+    use_fixtures: true
+    use_mocks: true
+
+# Agent-Specific Configuration
+# These values are passed to specialized agents
+
+agents:
+  backend_developer:
+    # Variables accessible as ${backend.framework}, ${backend.database}, etc.
+    vars:
+      framework: "${tech_stack.backend.framework}"
+      architecture: "${tech_stack.backend.architecture}"
+      database: "${tech_stack.backend.database}"
+      orm: "${tech_stack.backend.orm}"
+      testing_framework: "${tech_stack.backend.testing_framework}"
+
+    # Custom instructions
+    instructions: |
+      - Always use dependency injection with @lru_cache()
+      - Follow repository pattern for data access
+      - Use Pydantic for all DTOs
+      - Map domain exceptions to HTTP status codes
+
+  frontend_developer:
+    vars:
+      framework: "${tech_stack.frontend.framework}"
+      architecture: "${tech_stack.frontend.architecture}"
+      ui_library: "${tech_stack.frontend.ui_library}"
+      state_management: "${tech_stack.frontend.state_management}"
+      testing_framework: "${tech_stack.frontend.testing_framework}"
+
+    instructions: |
+      - Use feature-based folder structure
+      - Implement custom hooks for business logic
+      - Use Zod schemas for runtime validation
+      - Keep components pure and presentational
+
+  backend_test_engineer:
+    vars:
+      framework: "${tech_stack.backend.testing_framework}"
+      coverage_target: "${tech_stack.backend.coverage_target}"
+
+    instructions: |
+      - Use pytest fixtures for common setup
+      - Mock external dependencies at boundaries
+      - Follow AAA pattern: Arrange, Act, Assert
+      - Test both happy and unhappy paths
+
+  frontend_test_engineer:
+    vars:
+      framework: "${tech_stack.frontend.testing_framework}"
+      coverage_target: "${tech_stack.frontend.coverage_target}"
+
+    instructions: |
+      - Use React Testing Library for component tests
+      - Test user behavior, not implementation
+      - Mock API calls with MSW or vi.mock
+      - Test accessibility with screen readers
+
+  qa_criteria_validator:
+    vars:
+      e2e_framework: "playwright"
+
+    instructions: |
+      - Use Given-When-Then format for criteria
+      - Map acceptance criteria to OpenSpec scenarios
+      - Create Playwright tests for critical paths
+      - Validate accessibility standards (WCAG 2.1 AA)
+
+  ui_ux_analyzer:
+    vars:
+      ui_library: "${tech_stack.frontend.ui_library}"
+      styling: "${tech_stack.frontend.styling}"
+
+    instructions: |
+      - Ensure consistency with design system
+      - Check responsive design across breakpoints
+      - Validate color contrast ratios
+      - Review micro-interactions and animations
+
+# Metadata
+metadata:
+  scd_version: "1.0.0"
+  created: "2025-12-19"
+  last_updated: "2025-12-19"
+  template_version: "1.0.0"
