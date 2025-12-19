@@ -1,19 +1,62 @@
 # SCD Agent Adaptation - Progress Report
 
 **Date**: 2025-12-19
-**Status**: Phase 3 Completed ✅
+**Status**: Phase 5 Completed ✅ + Phase 0 Ideation Agents Added
 
 ---
 
 ## ✅ Completed Phases
 
-### Phase 0: OpenSpec Foundation
+### Phase 0: OpenSpec Foundation & Ideation Agents
 - [x] Analyzed OpenSpec vs emulation options
 - [x] **Decision**: Use OpenSpec COMPLETO as foundation
 - [x] Documented rationale in `openspec-analysis.md`
 - [x] Verified OpenSpec CLI installation
+- [x] Adapted `product-strategy-analyst.md` for Phase 0
+- [x] Adapted `market-research-analyst.md` for Phase 0
 
-**Key Outcome**: SCD Framework = OpenSpec (specs) + Agents (planning/testing)
+**Key Outcome**: SCD Framework = OpenSpec (specs) + Agents (planning/testing/ideation)
+
+**Ideation Agents (Phase 0)**:
+
+#### Product Strategy Analyst
+**Before:**
+- Output to `@docs/agent_outputs/` (inconsistent)
+- No OpenSpec integration
+- Vague output structure
+
+**After:**
+- ✅ **Standardized output**: `product-strategy.md` in `.claude/doc/{feature_name}/`
+- ✅ **Phase 0 positioning**: Works BEFORE OpenSpec specification
+- ✅ **Feeds PM agent**: Analysis informs OpenSpec proposal creation
+- ✅ **Comprehensive template**: Use cases, personas, value prop, MVP, risks
+- ✅ **Context integration**: Reads/updates context_session
+
+#### Market Research Analyst
+**Before:**
+- Output to `@docs/agent_outputs/` (inconsistent)
+- No OpenSpec integration
+- Basic competitive analysis
+
+**After:**
+- ✅ **Standardized output**: `market-research.md` in `.claude/doc/{feature_name}/`
+- ✅ **Phase 0 positioning**: Works BEFORE OpenSpec specification
+- ✅ **Feeds PM agent**: Research informs OpenSpec proposal creation
+- ✅ **Comprehensive template**: Competitive matrix, market sizing, pricing analysis, Go/No-Go
+- ✅ **Context integration**: Reads/updates context_session
+- ✅ **Web research**: Uses WebSearch and WebFetch for competitive intelligence
+
+**Complete Ideation Workflow**:
+```
+Raw Idea
+    ↓
+product-strategy-analyst → product-strategy.md
+market-research-analyst → market-research.md
+    ↓
+project-manager (uses analyses to create OpenSpec proposal)
+    ↓
+Phases 2-6: Implementation, Testing, Validation
+```
 
 ---
 
@@ -342,11 +385,13 @@ PM receives idea
 1. ✅ **Decision to use OpenSpec**: Avoided reinventing the wheel (saved 85-137 hours)
 2. ✅ **Project Manager Agent**: Central orchestrator for all features
 3. ✅ **Configuration System**: Technology-agnostic agent adaptation
-4. ✅ **Developer Agents**: OpenSpec-aware, tech-agnostic planning (backend + frontend)
-5. ✅ **Test Engineer Agents**: OpenSpec-aware test planning (backend + frontend)
-6. ✅ **QA and UI Agents**: OpenSpec-aware validation and design analysis
-7. ✅ **All 6 Core Agents Adapted**: Complete technology-agnostic agent suite
-8. ✅ **Standardized Workflow**: Consistent from idea → spec → plan → test → validation → implementation
+4. ✅ **Ideation Agents (Phase 0)**: Product strategy and market research agents
+5. ✅ **Developer Agents**: OpenSpec-aware, tech-agnostic planning (backend + frontend)
+6. ✅ **Test Engineer Agents**: OpenSpec-aware test planning (backend + frontend)
+7. ✅ **QA and UI Agents**: OpenSpec-aware validation and design analysis
+8. ✅ **Complete Agent Suite**: 9 agents covering ideation → validation
+9. ✅ **Standardized Workflow**: Complete pipeline from raw idea → validated implementation
+10. ✅ **Comprehensive README**: Technical documentation for the entire framework
 
 ---
 
@@ -402,6 +447,8 @@ PM receives idea
 - `PROGRESS.md` (this file)
 
 ### Modified
+- `.claude/agents/product-strategy-analyst.md` (Phase 0)
+- `.claude/agents/market-research-analyst.md` (Phase 0)
 - `.claude/agents/backend-developer.md` (Phase 3)
 - `.claude/agents/frontend-developer.md` (Phase 3)
 - `.claude/agents/backend-test-engineer.md` (Phase 4)
@@ -421,18 +468,19 @@ PM receives idea
 
 | Metric | Value |
 |--------|-------|
-| **Agents Created/Adapted** | 7 (PM + 6 specialized agents) |
+| **Agents Created/Adapted** | 9 (PM + 6 implementation + 2 ideation) |
 | **Templates Created** | 1 (project-config.yaml) |
-| **Documentation Files** | 5 (analysis, plan, variables, progress, CLAUDE.md) |
-| **Lines of Agent Config** | ~3,500+ |
+| **Documentation Files** | 6 (README, analysis, plan, variables, progress, CLAUDE.md) |
+| **Lines of Agent Config** | ~4,500+ |
 | **Technology Stacks Supported** | 20+ (Python, TS, Go, Java, React, Vue, Svelte, Angular, etc.) |
-| **Phases Completed** | 5 out of 9 |
+| **Workflow Phases Covered** | Complete (Phase 0 → Phase 6) |
+| **Phases Completed** | 5 out of 9 + Phase 0 Ideation |
 
 ---
 
-**Total Progress**: ~65% complete ✨
-**Estimated Completion**: 1-2 more working sessions
-**Confidence Level**: Very High (all core agents are complete and standardized)
+**Total Progress**: ~70% complete ✨
+**Estimated Completion**: 1 more working session
+**Confidence Level**: Very High (complete agent suite from ideation to validation)
 
 ---
 
