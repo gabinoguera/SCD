@@ -73,79 +73,12 @@ Verify installation:
 openspec --version
 ```
 
-#### 2. Clone SCD Framework
+#### 2. Initialize Your Project with OpenSpec
 
-For **new projects**:
-```bash
-git clone <scd-framework-repo> my-project
-cd my-project
-rm -rf .git
-git init
-```
-
-For **existing projects**:
-```bash
-cd my-existing-project
-# Copy SCD structure
-cp -r <scd-framework-repo>/.claude .
-cp -r <scd-framework-repo>/openspec .
-cp <scd-framework-repo>/CLAUDE.md .
-```
-
-#### 3. Initialize Project Configuration
+Navigate to your project directory (new or existing):
 
 ```bash
-# Copy template
-cp .claude/templates/project-config.yaml .claude/config/project-config.yaml
-
-# Edit with your tech stack
-vim .claude/config/project-config.yaml
-```
-
-Example configuration:
-```yaml
-project:
-  name: "my-awesome-app"
-  description: "E-commerce platform"
-  version: "1.0.0"
-
-tech_stack:
-  backend:
-    language: "python"
-    framework: "fastapi"
-    database: "postgresql"
-    orm: "sqlalchemy"
-    architecture: "hexagonal"
-    testing_framework: "pytest"
-    coverage_target: 80
-
-  frontend:
-    language: "typescript"
-    framework: "react"
-    version: "19"
-    ui_library: "shadcn"
-    styling: "tailwind"
-    state_management: "react-query"
-    architecture: "feature-based"
-    testing_framework: "vitest"
-    coverage_target: 80
-
-  design_system:
-    primary_color: "#3b82f6"
-    spacing_unit: "4px"
-    border_radius: "8px"
-
-coding_conventions:
-  naming:
-    files: "kebab-case"
-    classes: "PascalCase"
-    functions: "camelCase"
-    constants: "UPPER_SNAKE_CASE"
-```
-
-#### 4. Initialize OpenSpec
-
-```bash
+cd /path/to/your/project
 openspec init
 ```
 
@@ -153,6 +86,45 @@ This creates:
 - `openspec/project.md` - Project overview
 - `openspec/specs/` - Capability specifications
 - `openspec/changes/` - Change proposals
+- `openspec/AGENTS.md` - Agent instructions (auto-generated)
+- `CLAUDE.md` - Claude Code instructions (auto-generated)
+
+#### 3. Install SCD Framework
+
+Clone the SCD framework repository:
+
+```bash
+# From outside your project
+git clone <scd-framework-repo> /tmp/scd-framework
+cd /tmp/scd-framework
+
+# Install into your project
+./init-project.sh /path/to/your/project
+```
+
+This installs:
+- `.claude/agents/` - 14 specialized consultant agents
+- `.claude/commands/` - Slash commands (`/openspec:proposal`, `/ideation`, etc.)
+- `agent-resources.yaml` - Single source of truth (tech stack → agents mapping)
+- `.claude/research/` - For `/ideation` Phase 0 outputs
+- SCD instructions injected into `openspec/AGENTS.md`
+
+#### 4. Initialize SCD Configuration
+
+Open your project with Claude Code and run:
+
+```
+"Initialize SCD for this project"
+```
+
+The **Project Manager agent** will:
+1. Detect your technology stack (React, FastAPI, PostgreSQL, etc.)
+2. Generate `.mcp.json` with required MCP servers (from `agent-resources.yaml`)
+3. Generate `project-state.json` with detected stack configuration
+4. Update `openspec/project.md` with stack details
+5. Configure consultant agents based on your stack
+
+**That's it!** You're ready to start developing features.
 
 ---
 
@@ -195,9 +167,9 @@ The system SHALL authenticate users via email and password and return a JWT toke
 
 ### Phase 2: Specification → Implementation Plans
 
-**SCD Action**: Specialized agents create detailed plans
+**SCD Action**: Project Manager orchestrates specialized agents
 
-**Agents Called** (in parallel):
+**Agents Called** (in parallel by Project Manager):
 - `backend-developer` → Creates `backend-plan.md`
 - `frontend-developer` → Creates `frontend-plan.md`
 - `backend-test-engineer` → Creates `backend-tests.md`
@@ -205,15 +177,19 @@ The system SHALL authenticate users via email and password and return a JWT toke
 
 **Output Structure**:
 ```
-.claude/
-├── sessions/
-│   └── context_session_user-auth.md  # Shared context
-└── doc/
-    └── user-auth/
-        ├── backend-plan.md            # Backend implementation plan
-        ├── frontend-plan.md           # Frontend implementation plan
-        ├── backend-tests.md           # Backend test plan
-        └── frontend-tests.md          # Frontend test plan
+openspec/
+└── changes/
+    └── AUTH-001/                      # Change ID
+        ├── proposal.md                # Why, what, impact
+        ├── tasks.md                   # Implementation checklist
+        ├── specs/                     # Requirements
+        │   └── auth/
+        │       └── spec.md
+        └── doc/                       # Agent plans (NEW)
+            ├── backend-plan.md
+            ├── frontend-plan.md
+            ├── backend-tests.md
+            └── frontend-tests.md
 ```
 
 **Example backend-plan.md**:
@@ -319,7 +295,11 @@ def test_authenticate_user_with_valid_credentials_returns_jwt():
 
 **Output**:
 ```
-.claude/doc/user-auth/
+openspec/changes/AUTH-001/doc/
+├── backend-plan.md
+├── frontend-plan.md
+├── backend-tests.md
+├── frontend-tests.md
 ├── validation-criteria.md    # Acceptance criteria (Given-When-Then)
 ├── validation-report.md      # Test results and evidence
 └── ui-analysis.md            # UI/UX feedback with screenshots
@@ -386,7 +366,7 @@ User: "Create a new shopping cart feature"
 ### 2. Backend Developer
 **When to use**: Planning backend implementation
 **Purpose**: Creates detailed backend architecture plan
-**Output**: `.claude/doc/{feature}/backend-plan.md`
+**Output**: `openspec/changes/{change-id}/doc/backend-plan.md`
 
 **Adapts to**:
 - Python (FastAPI, Django, Flask)
@@ -397,7 +377,7 @@ User: "Create a new shopping cart feature"
 ### 3. Frontend Developer
 **When to use**: Planning frontend implementation
 **Purpose**: Creates detailed UI architecture plan
-**Output**: `.claude/doc/{feature}/frontend-plan.md`
+**Output**: `openspec/changes/{change-id}/doc/frontend-plan.md`
 
 **Adapts to**:
 - React (hooks, Context, React Query)
@@ -408,7 +388,7 @@ User: "Create a new shopping cart feature"
 ### 4. Backend Test Engineer
 **When to use**: After backend implementation plan
 **Purpose**: Creates comprehensive backend test plan
-**Output**: `.claude/doc/{feature}/backend-tests.md`
+**Output**: `openspec/changes/{change-id}/doc/backend-tests.md`
 
 **Adapts to**:
 - Python: pytest, unittest
@@ -419,7 +399,7 @@ User: "Create a new shopping cart feature"
 ### 5. Frontend Test Engineer
 **When to use**: After frontend implementation plan
 **Purpose**: Creates UI test plan with accessibility focus
-**Output**: `.claude/doc/{feature}/frontend-tests.md`
+**Output**: `openspec/changes/{change-id}/doc/frontend-tests.md`
 
 **Adapts to**:
 - React: Testing Library, Vitest/Jest
@@ -430,7 +410,7 @@ User: "Create a new shopping cart feature"
 ### 6. QA Criteria Validator
 **When to use**: After implementation for acceptance testing
 **Purpose**: Defines acceptance criteria, validates implementation
-**Output**: `validation-criteria.md`, `validation-report.md`
+**Output**: `openspec/changes/{change-id}/doc/validation-criteria.md`, `validation-report.md`
 
 **Adapts to**:
 - Playwright MCP
@@ -441,7 +421,7 @@ User: "Create a new shopping cart feature"
 ### 7. UI/UX Analyzer
 **When to use**: After UI implementation for design review
 **Purpose**: Analyzes UI against design system and OpenSpec
-**Output**: `.claude/doc/{feature}/ui-analysis.md`
+**Output**: `openspec/changes/{change-id}/doc/ui-analysis.md`
 
 **Adapts to**:
 - Any framework (React, Vue, Svelte, Angular)
@@ -455,125 +435,133 @@ User: "Create a new shopping cart feature"
 ```
 my-project/
 ├── .claude/                          # SCD Framework
-│   ├── agents/                       # Agent definitions
-│   │   ├── project-manager.md
-│   │   ├── backend-developer.md
-│   │   ├── frontend-developer.md
-│   │   ├── backend-test-engineer.md
-│   │   ├── frontend-test-engineer.md
-│   │   ├── qa-criteria-validator.md
-│   │   └── ui-ux-analyzer.md
-│   ├── config/
-│   │   └── project-config.yaml       # Tech stack configuration
-│   ├── doc/                          # Agent outputs
-│   │   └── {feature_name}/
-│   │       ├── backend-plan.md
-│   │       ├── frontend-plan.md
-│   │       ├── backend-tests.md
-│   │       ├── frontend-tests.md
-│   │       ├── validation-criteria.md
-│   │       ├── validation-report.md
-│   │       └── ui-analysis.md
-│   ├── sessions/                     # Shared context
-│   │   └── context_session_{feature}.md
-│   └── templates/
-│       └── project-config.yaml       # Config template
+│   ├── agents/                       # Agent definitions (14 agents)
+│   │   ├── project-manager.md        # Orchestrator
+│   │   ├── backend-developer.md      # Backend consultant
+│   │   ├── frontend-developer.md     # Frontend consultant
+│   │   ├── backend-test-engineer.md  # Backend testing consultant
+│   │   ├── frontend-test-engineer.md # Frontend testing consultant
+│   │   ├── qa-criteria-validator.md  # QA validation consultant
+│   │   ├── ui-ux-analyzer.md         # UI/UX consultant
+│   │   └── ... (7 more agents)
+│   ├── commands/                     # Slash commands
+│   │   ├── openspec-proposal.md      # /openspec:proposal
+│   │   ├── openspec-apply.md         # /openspec:apply
+│   │   ├── openspec-archive.md       # /openspec:archive
+│   │   └── ideation.md               # /ideation
+│   ├── research/                     # Phase 0 ideation outputs
+│   │   └── {research_name}.md
+│   └── templates/                    # Templates
+│       └── scd-injection-block.md    # For openspec/AGENTS.md injection
 ├── openspec/                         # OpenSpec structure
-│   ├── project.md
-│   ├── specs/                        # Archived specs
-│   ├── changes/                      # Active changes
+│   ├── AGENTS.md                     # Agent instructions (auto-generated + SCD injection)
+│   ├── project.md                    # Project context
+│   ├── specs/                        # Current specifications
+│   │   └── {capability}/
+│   │       ├── spec.md
+│   │       └── design.md
+│   ├── changes/                      # Active change proposals
 │   │   └── {change-id}/
-│   │       ├── proposal.md
-│   │       ├── design.md (optional)
-│   │       ├── tasks.md
-│   │       └── specs/
-│   │           └── {capability}/
-│   │               └── spec.md
+│   │       ├── proposal.md           # Why, what, impact
+│   │       ├── design.md             # Technical decisions (optional)
+│   │       ├── tasks.md              # Implementation checklist
+│   │       ├── specs/                # Specification deltas
+│   │       │   └── {capability}/
+│   │       │       └── spec.md
+│   │       └── doc/                  # Agent plans (created by PM)
+│   │           ├── backend-plan.md
+│   │           ├── frontend-plan.md
+│   │           ├── backend-tests.md
+│   │           ├── frontend-tests.md
+│   │           ├── validation-criteria.md
+│   │           ├── validation-report.md
+│   │           └── ui-analysis.md
 │   └── archives/                     # Completed changes
 ├── src/                              # Your application code
 ├── tests/                            # Your tests
-├── CLAUDE.md                         # Project instructions for Claude
-├── README.md                         # This file
-└── PROGRESS.md                       # SCD adaptation progress
+├── agent-resources.yaml              # Source of truth (stack → agents mapping)
+├── .mcp.json                         # MCP servers (auto-generated by PM)
+├── project-state.json                # Stack config (auto-generated by PM)
+├── CLAUDE.md                         # Claude Code instructions (auto-generated)
+└── README.md                         # This file
 ```
 
 ---
 
 ## 🔧 Configuration
 
-### project-config.yaml
+### agent-resources.yaml
 
-The `project-config.yaml` file is the single source of truth for your tech stack. All agents read this file to adapt their recommendations.
+The `agent-resources.yaml` file is the **single source of truth** for your SCD framework. It defines:
 
-**Location**: `.claude/config/project-config.yaml`
+1. **Available Agents**: All consultant and implementer agents
+2. **Tech Stack Mappings**: Which agents are assigned to which technologies
+3. **MCP Server Requirements**: Which MCP servers each agent needs
+4. **Detection Patterns**: How to auto-detect your tech stack
+
+**Location**: `agent-resources.yaml` (project root)
 
 **Key Sections**:
 
 ```yaml
-# Project metadata
-project:
-  name: "my-app"
-  description: "Application description"
-  version: "1.0.0"
+# Agent definitions
+agents:
+  project-manager:
+    role: orchestrator
+    phase: 0
+    responsibilities:
+      - "Create OpenSpec changes"
+      - "Detect tech stack"
+      - "Generate .mcp.json and project-state.json"
+      - "Orchestrate consultant agents"
+    output_locations:
+      - "openspec/changes/{change-id}/proposal.md"
+      - ".mcp.json (on initialization)"
+      - "project-state.json (on initialization)"
 
-# Backend stack
-tech_stack:
+  backend-developer:
+    role: consultant
+    phase: 1
+    category: "backend-planning"
+    required_for:
+      - fastapi
+      - django
+      - flask
+      - nestjs
+      - express
+    output_locations:
+      - "openspec/changes/{change-id}/doc/backend-plan.md"
+    mcp_servers:
+      always: [sequentialthinking, context7]
+
+# Technology stack mappings
+stacks:
+  python_fastapi:
+    agents: [backend-developer, backend-test-engineer]
+    mcp_servers: [context7, sequentialthinking]
+
+  react_typescript:
+    agents: [frontend-developer, frontend-test-engineer, shadcn-ui-architect]
+    mcp_servers: [shadcn-components, playwright]
+
+# Detection patterns
+detection_patterns:
   backend:
-    language: "python"              # python | typescript | go | java
-    framework: "fastapi"            # fastapi | django | express | gin | spring
-    database: "postgresql"          # postgresql | mysql | mongodb
-    orm: "sqlalchemy"               # sqlalchemy | typeorm | gorm | jpa
-    architecture: "hexagonal"       # hexagonal | layered | clean | mvc
-    testing_framework: "pytest"     # pytest | jest | go-test | junit
-    coverage_target: 80             # percentage
-
-  # Frontend stack
+    python_fastapi:
+      files: ["requirements.txt", "pyproject.toml"]
+      keywords: ["fastapi", "uvicorn"]
   frontend:
-    language: "typescript"
-    framework: "react"              # react | vue | svelte | angular
-    version: "19"
-    ui_library: "shadcn"            # shadcn | material-ui | chakra | ant-design
-    styling: "tailwind"             # tailwind | styled-components | css-modules
-    state_management: "react-query" # react-query | redux | zustand | pinia
-    architecture: "feature-based"   # feature-based | atomic | mvc
-    testing_framework: "vitest"     # vitest | jest | cypress
-    coverage_target: 80
-
-  # QA/E2E stack
-  qa:
-    e2e_framework: "playwright"     # playwright | cypress | selenium
-    test_browser: "chromium"
-    coverage_target: 90
-
-# Design system
-design_system:
-  primary_color: "#3b82f6"
-  spacing_unit: "4px"
-  border_radius: "8px"
-
-# Coding conventions
-coding_conventions:
-  naming:
-    files: "kebab-case"             # kebab-case | snake_case | PascalCase
-    classes: "PascalCase"
-    functions: "camelCase"          # camelCase | snake_case
-    constants: "UPPER_SNAKE_CASE"
-
-  documentation:
-    style: "docstring"              # docstring | jsdoc | javadoc
-    required_for: ["classes", "public_methods"]
+    react:
+      files: ["package.json"]
+      keywords: ["react", "react-dom"]
 ```
 
-**Variable Substitution**:
+**How It Works**:
 
-Agents use variables like `${tech_stack.backend.framework}` to adapt their recommendations dynamically.
-
-Example:
-```markdown
-You are an expert ${tech_stack.backend.framework} developer...
-```
-
-With `framework: "fastapi"` → "You are an expert fastapi developer..."
+1. **Initialization**: Project Manager reads `agent-resources.yaml`
+2. **Detection**: Scans your project for tech indicators (package.json, requirements.txt, etc.)
+3. **Configuration**: Generates `.mcp.json` and `project-state.json` based on detected stack
+4. **Orchestration**: Assigns appropriate consultant agents to each feature
 
 ---
 
@@ -588,7 +576,8 @@ User: "Start building the login form"
 
 ✅ **Do**:
 ```
-User: "Create an OpenSpec change for user authentication"
+User: "Add user authentication feature"
+→ Project Manager creates OpenSpec change
 → Review the generated specs
 → Approve and proceed with implementation plans
 ```
@@ -612,14 +601,14 @@ openspec/changes/PRODUCT-002/ # Product catalog
 openspec/changes/BUG-003/     # Checkout fix
 ```
 
-### 3. Update project-config.yaml First
+### 3. Initialize SCD Before Starting
 
-Before starting a new project or major refactor:
+When setting up a new project:
 
-1. Copy template: `cp .claude/templates/project-config.yaml .claude/config/`
-2. Edit with your tech stack
-3. Commit to version control
-4. All agents will now adapt to your stack
+1. Run `openspec init` in your project
+2. Clone SCD framework and run `./init-project.sh /path/to/project`
+3. In Claude Code: `"Initialize SCD for this project"`
+4. Project Manager will detect stack and configure everything
 
 ### 4. Review Plans Before Implementation
 
@@ -934,18 +923,21 @@ openspec archive CART-001
 
 ### Issue: Agent doesn't adapt to my tech stack
 
-**Cause**: project-config.yaml not found or invalid
+**Cause**: SCD not initialized or agent-resources.yaml not found
 
 **Solution**:
 ```bash
-# Verify file exists
-ls .claude/config/project-config.yaml
+# Verify agent-resources.yaml exists
+ls agent-resources.yaml
 
 # Verify YAML syntax
-cat .claude/config/project-config.yaml | python -c "import yaml, sys; yaml.safe_load(sys.stdin)"
+cat agent-resources.yaml | python -c "import yaml, sys; yaml.safe_load(sys.stdin)"
 
-# Ensure agents can read it
-# Check CLAUDE.md includes reference to project-config.yaml
+# Re-initialize SCD
+# In Claude Code: "Initialize SCD for this project"
+
+# Check generated files
+ls .mcp.json project-state.json
 ```
 
 ### Issue: OpenSpec command not found
@@ -985,14 +977,19 @@ cat .claude/agents/backend-developer.md
 
 ### Issue: Multiple agents creating conflicting plans
 
-**Cause**: Shared context not being updated
+**Cause**: Agents not coordinated by Project Manager
 
 **Solution**:
 ```bash
-# Verify session context exists
-ls .claude/sessions/context_session_{feature_name}.md
+# Verify OpenSpec change exists
+openspec list
 
-# Agents should update this file after each phase
+# Ensure you're working within a change
+ls openspec/changes/{change-id}/
+
+# Let Project Manager orchestrate agents
+# Instead of calling agents directly, say:
+# "Add [feature]" and let PM coordinate
 ```
 
 ---
@@ -1059,15 +1056,18 @@ From Claude Code CLI or IDE:
 
 | File | Purpose | Created By |
 |------|---------|------------|
-| `project-config.yaml` | Tech stack config | User |
-| `context_session_{feature}.md` | Shared context | All agents |
-| `backend-plan.md` | Backend architecture | backend-developer |
-| `frontend-plan.md` | Frontend architecture | frontend-developer |
-| `backend-tests.md` | Backend test plan | backend-test-engineer |
-| `frontend-tests.md` | Frontend test plan | frontend-test-engineer |
-| `validation-criteria.md` | Acceptance criteria | qa-criteria-validator |
-| `validation-report.md` | Test results | qa-criteria-validator |
-| `ui-analysis.md` | UI/UX feedback | ui-ux-analyzer |
+| `agent-resources.yaml` | Tech stack → agents mapping | SCD Framework |
+| `.mcp.json` | MCP servers configuration | project-manager (auto) |
+| `project-state.json` | Detected tech stack | project-manager (auto) |
+| `openspec/changes/{id}/proposal.md` | Change proposal | project-manager |
+| `openspec/changes/{id}/tasks.md` | Implementation checklist | project-manager |
+| `openspec/changes/{id}/doc/backend-plan.md` | Backend architecture | backend-developer |
+| `openspec/changes/{id}/doc/frontend-plan.md` | Frontend architecture | frontend-developer |
+| `openspec/changes/{id}/doc/backend-tests.md` | Backend test plan | backend-test-engineer |
+| `openspec/changes/{id}/doc/frontend-tests.md` | Frontend test plan | frontend-test-engineer |
+| `openspec/changes/{id}/doc/validation-criteria.md` | Acceptance criteria | qa-criteria-validator |
+| `openspec/changes/{id}/doc/validation-report.md` | Test results | qa-criteria-validator |
+| `openspec/changes/{id}/doc/ui-analysis.md` | UI/UX feedback | ui-ux-analyzer |
 
 ---
 
