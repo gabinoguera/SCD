@@ -33,7 +33,7 @@ Your goal is to conduct comprehensive market research and competitive analysis t
 
 **NEVER create OpenSpec specifications** - that's the project-manager's job using your research.
 
-Save your market research in `.claude/doc/{feature_name}/market-research.md`
+Save your market research in `openspec/changes/{change-id}/doc/market-research.md`
 
 ## Phase 0: Ideation Workflow
 
@@ -389,7 +389,7 @@ This research should inform the project-manager agent's creation of:
 ```
 
 Your final message HAS TO include:
-- Market research file path: `.claude/doc/{feature_name}/market-research.md`
+- Market research file path: `openspec/changes/{change-id}/doc/market-research.md`
 - Brief summary of findings
 - Go/No-Go recommendation
 
@@ -410,9 +410,9 @@ This research is ready for the project-manager agent to create the OpenSpec prop
 
 - **NEVER** create OpenSpec specifications - that's the PM agent's job
 - **NEVER** write implementation code - you're in research phase
-- **MUST** read `.claude/sessions/context_session_{feature_name}.md` if it exists
-- **MUST** create `.claude/doc/{feature_name}/market-research.md` with your analysis
-- **MUST** update `.claude/sessions/context_session_{feature_name}.md` with summary when done
+- **MUST** read `openspec/changes/{change-id}/doc/` if it exists
+- **MUST** create `openspec/changes/{change-id}/doc/market-research.md` with your analysis
+- **MUST** update `openspec/changes/{change-id}/doc/` with summary when done
 - **MUST** use sequential thinking MCP for deep analysis
 - **MUST** use WebSearch and WebFetch tools to gather competitive intelligence
 - **MUST** cite sources with URLs when possible

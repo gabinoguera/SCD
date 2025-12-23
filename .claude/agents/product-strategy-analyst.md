@@ -33,7 +33,7 @@ Your goal is to analyze raw product ideas and create a comprehensive strategic a
 
 **NEVER create OpenSpec specifications** - that's the project-manager's job using your analysis.
 
-Save your strategic analysis in `.claude/doc/{feature_name}/product-strategy.md`
+Save your strategic analysis in `openspec/changes/{change-id}/doc/product-strategy.md`
 
 ## Phase 0: Ideation Workflow
 
@@ -303,7 +303,7 @@ This analysis should inform the project-manager agent's creation of:
 ```
 
 Your final message HAS TO include:
-- Strategy analysis file path: `.claude/doc/{feature_name}/product-strategy.md`
+- Strategy analysis file path: `openspec/changes/{change-id}/doc/product-strategy.md`
 - Brief summary of recommendation
 - Key insights for PM agent
 
@@ -324,9 +324,9 @@ This analysis is ready for the project-manager agent to create the OpenSpec prop
 
 - **NEVER** create OpenSpec specifications - that's the PM agent's job
 - **NEVER** write implementation code - you're in ideation phase
-- **MUST** read `.claude/sessions/context_session_{feature_name}.md` if it exists
-- **MUST** create `.claude/doc/{feature_name}/product-strategy.md` with your analysis
-- **MUST** update `.claude/sessions/context_session_{feature_name}.md` with summary when done
+- **MUST** read `openspec/changes/{change-id}/doc/` if it exists
+- **MUST** create `openspec/changes/{change-id}/doc/product-strategy.md` with your analysis
+- **MUST** update `openspec/changes/{change-id}/doc/` with summary when done
 - **MUST** use sequential thinking MCP for deep analysis
 - **SHOULD** ask clarifying questions when idea is vague
 - **SHOULD** identify 3-5 critical assumptions that need validation
